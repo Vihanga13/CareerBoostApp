@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Alert } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { UserCircle } from 'lucide-react-native';
 import ResumeScreen from '../screens/ResumeScreen';
@@ -11,13 +11,36 @@ import LoginPage from '../screens/login_page';
 import RegisterPage from '../screens/register_page';
 import ForgetPasswordPage from '../screens/ForgetPasswordPage';
 import StudentDashboard from '../screens/StudentDashboard';
+import { signOut } from '../services/auth';
+import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 const Stack = createStackNavigator();
 
-const AppNavigator = () => {
+interface AppNavigatorProps {
+  initialUser: FirebaseAuthTypes.User | null;
+}
+
+const AppNavigator = ({ initialUser }: AppNavigatorProps) => {
+  const navigation = useNavigation();
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
+  };
+  // Change initial route based on auth state
+  React.useEffect(() => {
+    if (initialUser) {
+      // TODO: Check user role in Firestore and navigate accordingly
+      navigation.navigate('StudentDashboard');
+    }
+  }, [initialUser]);
+
   return (
     <Stack.Navigator 
-      initialRouteName="Login"
+      initialRouteName={initialUser ? 'StudentDashboard' : 'Login'}
       screenOptions={{
         headerStyle: {
           backgroundColor: '#F8FAFC',
@@ -41,7 +64,10 @@ const AppNavigator = () => {
         options={{ 
           title: 'Dashboard',
           headerRight: () => (
-            <TouchableOpacity style={{ marginRight: 16 }}>
+            <TouchableOpacity 
+              style={{ marginRight: 16 }} 
+              onPress={handleSignOut}
+            >
               <UserCircle size={24} color="#1E293B" />
             </TouchableOpacity>
           ),

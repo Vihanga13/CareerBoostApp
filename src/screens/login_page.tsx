@@ -85,17 +85,34 @@ const LoginPage = () => {
     }
   };
 
+  const getFirebaseErrorMessage = (error: any) => {
+    switch (error.code) {
+      case 'auth/invalid-email':
+        return 'Invalid email address format.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      case 'auth/user-not-found':
+        return 'No account found with this email.';
+      case 'auth/wrong-password':
+        return 'Incorrect password.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      default:
+        return error.message || 'An error occurred during login.';
+    }
+  };
+
   const handleLogin = async () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
-      const userCredential = await signIn(formData.email, formData.password);
-      navigation.navigate('StudentDashboard');
+      await signIn(formData.email, formData.password);
+      // Don't navigate here - let the auth state change handler do it
     } catch (error: any) {
       Alert.alert(
         'Login Failed',
-        error.message || 'Please check your email and password'
+        getFirebaseErrorMessage(error)
       );
     } finally {
       setIsLoading(false);
@@ -105,12 +122,14 @@ const LoginPage = () => {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      const userCredential = await signInWithGoogle();
-      navigation.navigate('StudentDashboard');
+      await signInWithGoogle();
+      // Don't navigate here - let the auth state change handler do it
     } catch (error: any) {
       Alert.alert(
         'Google Sign In Failed',
-        error.message || 'An error occurred during Google sign in'
+        error.code === 'auth/cancelled-popup-request'
+          ? 'Sign in was cancelled.'
+          : error.message || 'An error occurred during Google sign in'
       );
     } finally {
       setIsLoading(false);
