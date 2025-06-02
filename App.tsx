@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { View, ActivityIndicator } from 'react-native';
+import { AuthProvider } from './src/services/auth';
 
 const App = () => {
   const [initializing, setInitializing] = useState(true);
@@ -28,9 +29,11 @@ const App = () => {
   }
 
   return (
-    <NavigationContainer>
-      <AppNavigator initialUser={user} />
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
+        <AppNavigator initialUser={user} />
+      </NavigationContainer>
+    </AuthProvider>
   );
 };
 

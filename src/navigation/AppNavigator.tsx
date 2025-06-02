@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Alert } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { UserCircle } from 'lucide-react-native';
+import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import ResumeScreen from '../screens/ResumeScreen';
 import ListingsScreen from '../screens/ListingsScreen';
 import SkillMatchScreen from '../screens/SkillMatchScreen';
@@ -12,17 +13,28 @@ import RegisterPage from '../screens/register_page';
 import ForgetPasswordPage from '../screens/ForgetPasswordPage';
 import StudentDashboard from '../screens/StudentDashboard';
 import { signOut } from '../services/auth';
-import { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-const Stack = createStackNavigator();
+type RootStackParamList = {
+  Login: undefined;
+  StudentDashboard: undefined;
+  Resume: undefined;
+  Listings: undefined;
+  'Skill Match': undefined;
+  'Interview Tips': undefined;
+  Quizzes: undefined;
+  RegisterPage: undefined;
+  ForgetPasswordPage: undefined;
+};
+
+const RootStack = createStackNavigator<RootStackParamList>();
 
 interface AppNavigatorProps {
   initialUser: FirebaseAuthTypes.User | null;
 }
 
 const AppNavigator = ({ initialUser }: AppNavigatorProps) => {
-  const navigation = useNavigation();
-  
+  // No need for useNavigation here since we're handling auth state in App.tsx
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -30,16 +42,9 @@ const AppNavigator = ({ initialUser }: AppNavigatorProps) => {
       Alert.alert('Error', 'Failed to sign out. Please try again.');
     }
   };
-  // Change initial route based on auth state
-  React.useEffect(() => {
-    if (initialUser) {
-      // TODO: Check user role in Firestore and navigate accordingly
-      navigation.navigate('StudentDashboard');
-    }
-  }, [initialUser]);
 
   return (
-    <Stack.Navigator 
+    <RootStack.Navigator 
       initialRouteName={initialUser ? 'StudentDashboard' : 'Login'}
       screenOptions={{
         headerStyle: {
@@ -53,12 +58,12 @@ const AppNavigator = ({ initialUser }: AppNavigatorProps) => {
         },
       }}
     >
-      <Stack.Screen 
+      <RootStack.Screen 
         name="Login" 
         component={LoginPage}
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
+      <RootStack.Screen 
         name="StudentDashboard" 
         component={StudentDashboard}
         options={{ 
@@ -74,22 +79,22 @@ const AppNavigator = ({ initialUser }: AppNavigatorProps) => {
         }}
       />
     
-      <Stack.Screen name="Resume" component={ResumeScreen} />
-      <Stack.Screen name="Listings" component={ListingsScreen} />
-      <Stack.Screen name="Skill Match" component={SkillMatchScreen} />
-      <Stack.Screen name="Interview Tips" component={TipsScreen} />
-      <Stack.Screen name="Quizzes" component={QuizScreen} />
-      <Stack.Screen 
+      <RootStack.Screen name="Resume" component={ResumeScreen} />
+      <RootStack.Screen name="Listings" component={ListingsScreen} />
+      <RootStack.Screen name="Skill Match" component={SkillMatchScreen} />
+      <RootStack.Screen name="Interview Tips" component={TipsScreen} />
+      <RootStack.Screen name="Quizzes" component={QuizScreen} />
+      <RootStack.Screen 
         name="RegisterPage" 
         component={RegisterPage}
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
+      <RootStack.Screen 
         name="ForgetPasswordPage" 
         component={ForgetPasswordPage}
         options={{ title: 'Reset Password' }}
       />
-    </Stack.Navigator>
+    </RootStack.Navigator>
   );
 };
 
